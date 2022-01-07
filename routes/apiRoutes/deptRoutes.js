@@ -62,10 +62,12 @@ router.delete('/departments/:id', (req, res) => {
 
 // READ department budgets
 router.get('/departments/budgets', (req, res) => {
-  const sql = `SELECT SUM(salary) FROM roles
-              AS "Budget"
-              GROUP BY department_id
-              ORDER BY Budget DESC`;
+  const sql = `SELECT department_id AS "department",
+              SUM(employee_salary) AS "budget"
+              FROM employees
+              RIGHT JOIN departments
+              ON employees.department_id = departments.id
+              GROUP BY department_id`;
   
   db.query(sql, (err, rows) => {
     if (err) {
@@ -73,7 +75,7 @@ router.get('/departments/budgets', (req, res) => {
       return;
     }
     res.json({
-      message: 'success',
+      message: 'showing budgets',
       data: rows
     });
   });
