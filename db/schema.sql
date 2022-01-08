@@ -22,9 +22,8 @@ CREATE TABLE employees (
   role_id INTEGER NOT NULL DEFAULT 1,
   manager_id INTEGER DEFAULT NULL,
   department_id INTEGER DEFAULT NULL,
-  employee_salary DECIMAL(9, 2) NOT NULL DEFAULT 0.00,
+  employee_salary DECIMAL(9, 2) DEFAULT 0.00,
   CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES roles(id),
   CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES employees(id),
-  CONSTRAINT fk_department_id FOREIGN KEY (department_id) REFERENCES departments(id),
-  CONSTRAINT fk_salary FOREIGN KEY (employee_salary) REFERENCES roles(salary)
+  CONSTRAINT fk_department_id FOREIGN KEY (department_id) REFERENCES departments(id)
 );

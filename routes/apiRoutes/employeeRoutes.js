@@ -82,10 +82,13 @@ router.put('/employees/:id', (req, res) => {
 // CREATE Employee
 router.post('/employees', ({ body }, res) => {
 
-  const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id)
-    VALUES (?, ?, ?, ?)`;
+  const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id, employee_salary)
+    VALUES (?, ?, ?, ?)`
+    // UPDATE employees, roles
+    // SET employees.employee_salary = roles.salary
+    // WHERE employees.role_id = roles.id`;
   const params = [body.first_name, body.last_name, body.role_id, body.manager_id];
-  
+
   db.query(sql, params, (err, result) => {
     if (err) {
       res.status(400).json({ error: err.message });

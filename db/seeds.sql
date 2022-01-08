@@ -18,14 +18,14 @@ VALUES
 
 INSERT INTO employees (first_name, last_name, role_id, manager_id, department_id, employee_salary)
 VALUES
-('Jenna', 'Saleh', 1, NULL, 1, 180000), -- dev manager
-('Mike', 'Saleh', 1, NULL, 2, 180000), -- sales manager
-('Mary', 'Saleh', 1, NULL, 3, 180000), -- HR manager
-('David', 'Steiner', 2, 1, 1, 80000),
-('Nick', 'Saleh', 3, 1, 1, 110000),
-('Armin', 'NoIdeaHowToSpellIt', 4, 1, 1, 140000),
-('Carter', 'Steiner', 5, 2, 1, 100000),
-('Zac', 'Saleh', 6, 2, 2, 130000),
-('Christina', 'Saleh', 7, 3, 2, 90000),
-('Dana', 'Saleh', 8, 3, 3, 95000),
-('Nate','Potter', 9, 3, 3, 105000);
+('Jenna', 'Saleh', 1, NULL, 1, NULL), -- dev manager
+('Mike', 'Saleh', 1, NULL, 2, NULL), -- sales manager
+('Mary', 'Saleh', 1, NULL, 3, NULL), -- HR manager
+('David', 'Steiner', 2, 1, 1, NULL),
+('Nick', 'Saleh', 3, 1, 1, NULL),
+('Armin', 'NoIdeaHowToSpellIt', 4, 1, 1, NULL),
+('Carter', 'Steiner', 5, 2, 1, NULL),
+('Zac', 'Saleh', 6, 2, 2, NULL),
+('Christina', 'Saleh', 7, 3, 2, NULL),
+('Dana', 'Saleh', 8, 3, 3, NULL),
+('Nate','Potter', 9, 3, 3, NULL);
