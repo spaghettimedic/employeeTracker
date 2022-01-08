@@ -63,10 +63,10 @@ router.delete('/departments/:id', (req, res) => {
 // READ department budgets
 router.get('/departments/budgets', (req, res) => {
   const sql = `SELECT departments.name AS "department",
-              SUM(employee_salary) AS "budget"
+              SUM(salary) AS "budget"
               FROM departments
-              LEFT JOIN employees
-              ON departments.id = employees.department_id
+              LEFT JOIN roles
+              ON departments.id = roles.department_id
               GROUP BY department_id`;
   
   db.query(sql, (err, rows) => {
