@@ -17,7 +17,7 @@ const mainMenu = () => {
 
   NOTE:
   - You will need to CREATE Departments before you can assign a Role to a department.
-  - You will need to CREATE managers before you can assign a manager to an Employee.
+  - You will need to CREATE Managers before you can assign a Manager to an Employee.
   `);
 
   return inquirer.prompt(
@@ -26,8 +26,8 @@ const mainMenu = () => {
       name: 'menuChoice',
       message: 'What would you like to do?',
       choices: [
-        'VIEW all Departments',
         'VIEW Department budgets',
+        'VIEW all Departments',
         'VIEW all Roles',
         'VIEW all Employees',
         'VIEW Employees by manager',
@@ -347,8 +347,8 @@ const removeEmployee = () => {
   let employeeNames = [];
 
   // gets list of current employees
-  const sql = 'SELECT * FROM employees';
-  db.query(sql, (err, rows) => {
+  const emp_sql = 'SELECT * FROM employees';
+  db.query(emp_sql, (err, rows) => {
     if (err) {
       console.log(err);
     }
@@ -383,8 +383,8 @@ const removeRole = () => {
   let roleTitles = [];
 
   // gets list of current roles
-  const sql = 'SELECT * FROM roles';
-  db.query(sql, (err, rows) => {
+  const role_sql = 'SELECT * FROM roles';
+  db.query(role_sql, (err, rows) => {
     if (err) {
       console.log(err);
     };
@@ -418,8 +418,8 @@ const removeDept = () => {
   let departments = [];
 
   // gets list of current departments
-  const sql = 'SELECT * FROM departments';
-  db.query(sql, (err, rows) => {
+  const dept_sql = 'SELECT * FROM departments';
+  db.query(dept_sql, (err, rows) => {
     if (err) {
       console.log(err);
     }
@@ -456,8 +456,8 @@ const updEmpMan = () => {
   let managerNames = [];
   
   // gets list of current employees
-  const sql = 'SELECT * FROM employees';
-  db.query(sql, (err, empRes) => {
+  const emp_sql = 'SELECT * FROM employees';
+  db.query(emp_sql, (err, empRes) => {
     if (err) {
       console.log(err);
     };
@@ -468,8 +468,8 @@ const updEmpMan = () => {
   });
   
   // gets list of current managers, set all info to managers, just names to managerNames
-  const sql = 'SELECT * FROM employees WHERE role_id = 1';
-  db.query(sql, (err, manRes) => {
+  const man_sql = 'SELECT * FROM employees WHERE role_id = 1';
+  db.query(man_sql, (err, manRes) => {
     if (err) {
       console.log(err);
     };
