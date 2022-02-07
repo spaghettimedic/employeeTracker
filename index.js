@@ -198,7 +198,6 @@ const newRole = () => {
       departmentIds.push(deptRes[i].id);
       departmentNames.push(deptRes[i].name);
     };
-    console.log(departmentIds, departmentNames);
   })
   .then(() => {
     inquirer.prompt([
@@ -358,7 +357,6 @@ const removeEmployee = () => {
       employees.push(rows[i]);
       employeeNames.push(rows[i].first_name + ' ' + rows[i].last_name);
     }
-    console.log(employees, employeeNames);
   })
   .then(() => {
     inquirer.prompt([
@@ -373,7 +371,6 @@ const removeEmployee = () => {
       for (let i = 0; i < employees.length; i++) {
         if (employeeNames[i] === employeeName) {
           employee.deleteEmployee(employeeName, employees[i].id);
-          console.log(employeeName, employees[i].id);
         };
       };
       mainMenu();
