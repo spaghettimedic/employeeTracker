@@ -123,7 +123,6 @@ const newEmployee = () => {
     };
   })
   .then(() => {
-    console.log(roleTitles, managerNames);
     inquirer.prompt([
       {
         type: 'input',
@@ -166,19 +165,18 @@ const newEmployee = () => {
     ])
     .then(({firstName, lastName, employeeRole, employeeManager}) => {
       // set user answer to database id value for role and manager with these loops
-      let role_id = null;
+      let role_id;
       for (let i = 0; i < roles.length; i++) {
         if (roles[i].title === employeeRole) {
           role_id = roles[i].id;
         };
       };
-      let manager_id = null;
+      let manager_id;
       for (let i = 0; i < managers.length; i++) {
         if (managers[i].first_name + ' ' + managers[i].last_name === employeeManager) {
           manager_id = managers[i].id;
         };
       };
-  
       employee.createEmployee(firstName, lastName, role_id, manager_id);
       mainMenu();
     });
@@ -186,7 +184,7 @@ const newEmployee = () => {
 };
 
 const newRole = () => {
-  let departments = [];
+  let departmentIds = [];
   let departmentNames = [];
 
   // get all available roles
@@ -197,10 +195,10 @@ const newRole = () => {
       return;
     }
     for (let i = 0; i < deptRes.length; i++) {
-      departments.push(deptRes[i]);
+      departmentIds.push(deptRes[i].id);
       departmentNames.push(deptRes[i].name);
     };
-    console.log(departments, departmentNames);
+    console.log(departmentIds, departmentNames);
   })
   .then(() => {
     inquirer.prompt([
@@ -240,10 +238,9 @@ const newRole = () => {
     .then(({title, roleDept, salary}) => {
       // set user answer to database id value for department with this loop
       let department_id;
-      for (let i = 0; i < departments.length; i++) {
-        if (departments[i] === roleDept) {
-          department_id = departments[i].id;
-          console.log(department_id);
+      for (let i = 0; i < departmentNames.length; i++) {
+        if (departmentNames[i] === roleDept) {
+          department_id = departmentIds[i];
         };
       };
       role.createRole(title, salary, department_id);
@@ -252,9 +249,7 @@ const newRole = () => {
   });
 };
 
-// works but creates duplicates
 const newDept = () => {
-
   inquirer.prompt({
     type: 'input',
     name: 'deptName',
@@ -274,79 +269,80 @@ const newDept = () => {
   });
 };
 
-// goes straight back to mainMenu() after 1st time being selected,
-// shows the question but immediately closes the program after 2nd time being selected
 const viewEmpByMan = () => {
   let managers = [];
+  let managerIds = [];
 
   // get all available managers
   const manager_sql = `SELECT * FROM employees WHERE role_id = 1`;
-  db.query(manager_sql, (err, manRes) => {
-    if (err) {
-      console.log(err);
+  db.promise().query(manager_sql)
+  .then(([manRes]) => {
+    if (!manRes) {
+      console.log(`There are no managers in the database yet!`);
     }
     for (let i = 0; i < manRes.length; i++) {
       managers.push(manRes[i].first_name + ' ' + manRes[i].last_name);
+      managerIds.push(manRes[i].id);
     };
-    return manRes;
-  });
-
-  inquirer.prompt({
-    type: 'list',
-    name: 'employeeManager',
-    message: 'Which manager would you like to see the employees for?',
-    choices: managers
   })
-  .then(({employeeManager}, manRes) => {
-    // set user answer to database id value for manager_id
-    let manager_id = null;
-    for (let i = 0; i < manRes.length; i++) {
-      if (manRes[i].first_name + ' ' + manRes[i].last_name === employeeManager) {
-        manager_id = manRes[i].id;
+  .then(() => {
+    inquirer.prompt({
+      type: 'list',
+      name: 'employeeManager',
+      message: 'Which manager would you like to see the employees for?',
+      choices: managers
+    })
+    .then(({employeeManager}) => {
+      // set user answer to database id value for manager_id
+      let manager_id;
+      for (let i = 0; i < managers.length; i++) {
+        if (managers[i] === employeeManager) {
+          manager_id = managerIds[i];
+        };
       };
-    };
-    employee.showEmployeesByManager(manager_id);
-    mainMenu();
-  });
+      employee.showEmployeesByManager(employeeManager, manager_id);
+      mainMenu();
+    });
+  })
 };
 
-// goes straight back to mainMenu() after 1st time being selected,
-// shows the question but immediately closes the program after 2nd time being selected
 const viewEmpByDept = () => {
   let departments = [];
+  let departmentIds = [];
 
   // get all available departments
-  const dept_sql = `SELECT name FROM departments`;
-  db.query(dept_sql, (err, deptRes) => {
-    if (err) {
-      console.log(err);
+  db.promise().query(`SELECT * FROM departments`)
+  .then(([deptRes]) => {
+    if (!deptRes) {
+      console.log(`There are no departments in the database yet!`);
     }
     for (let i = 0; i < deptRes.length; i++) {
       departments.push(deptRes[i].name);
+      departmentIds.push(deptRes[i].id);
     };
     return deptRes;
-  });
-
-  inquirer.prompt({
-    type: 'list',
-    name: 'department',
-    message: 'Which department would you like to see the employees for?',
-    choices: departments
   })
-  .then(({department}, deptRes) => {
-    // set user answer to database id value for department_id
-    let department_id = null;
-    for (let i = 0; i < deptRes.length; i++) {
-      if (deptRes[i].name === department) {
-        department_id = deptRes[i].id;
+  .then(() => {
+    inquirer.prompt({
+      type: 'list',
+      name: 'department',
+      message: 'Which department would you like to see the employees for?',
+      choices: departments
+    })
+    .then(({department}) => {
+      // set user answer to database id value for department_id
+      let department_id;
+      for (let i = 0; i < departments.length; i++) {
+        if (departments[i] === department) {
+          department_id = departmentIds[i];
+        };
       };
-    };
-    employee.showEmployeesByDept(department_id);
-    mainMenu();
-  });
+      employee.showEmployeesByDept(department, department_id);
+      mainMenu();
+    });
+  })
 };
 
-// errors out and crashes after employee selection
 const removeEmployee = () => {
   let employees = [];
   let employeeNames = [];
@@ -385,7 +381,6 @@ const removeEmployee = () => {
   });
 };
 
-// errors out and creates exponential multiples of everything shown in the terminal
 const removeRole = () => {
   let roles = [];
   let roleTitles = [];
@@ -401,7 +396,6 @@ const removeRole = () => {
       roles.push(rows[i]);
       roleTitles.push(rows[i].title);
     };
-    console.log(roles, roleTitles);
   })
   .then(() => {
     inquirer.prompt([
@@ -425,22 +419,22 @@ const removeRole = () => {
   })
 };
 
-// works but duplicates everything shown in the terminal
 const removeDept = () => {
   let departments = [];
 
   // gets list of current departments
-  const dept_sql = 'SELECT * FROM departments';
-  db.query(dept_sql, (err, rows) => {
-    if (err) {
-      console.log(err);
+  db.promise().query('SELECT * FROM departments')
+  .then(([rows]) => {
+    if (!rows) {
+      console.log(`There are no departments in the database yet!`);
     }
     for (let i = 0; i < rows.length; i++) {
       if (rows[i].name) {
         departments.push(rows[i]);
       }
     }
-
+  })
+  .then(() => {
     inquirer.prompt([
       {
         type: 'list',
@@ -452,11 +446,10 @@ const removeDept = () => {
     .then(({deptName}) => {
       for (let i = 0; i < departments.length; i++) {
         if (departments[i].name === deptName) {
-          department.setProperties(departments[i]);
           department.deleteDept(deptName, departments[i].id);
         };
-        mainMenu();
       };
+      mainMenu();
     });
   });
 };
@@ -468,10 +461,11 @@ const updEmpMan = () => {
   let managerNames = [];
   
   // gets list of current employees
-  const emp_sql = 'SELECT * FROM employees';
-  db.query(emp_sql, (err, empRes) => {
-    if (err) {
-      console.log(err);
+  db.promise().query('SELECT * FROM employees')
+  .then(([empRes]) => {
+    if (!empRes) {
+      console.log(`There are no employees in the database yet!`);
+      return;
     };
     for (let i = 0; i < empRes.length; i++) {
       employees.push(empRes[i]);
@@ -480,51 +474,52 @@ const updEmpMan = () => {
   });
   
   // gets list of current managers, set all info to managers, just names to managerNames
-  const man_sql = 'SELECT * FROM employees WHERE role_id = 1';
-  db.query(man_sql, (err, manRes) => {
-    if (err) {
-      console.log(err);
+  db.promise().query('SELECT * FROM employees WHERE role_id = 1')
+  .then(([manRes]) => {
+    if (!manRes) {
+      console.log(`There are no employees in the databse yet!`);
+      return;
     };
     for (let i = 0; i < manRes.length; i++) {
       managers.push(manRes[i]);
       managerNames.push(manRes[i].first_name + ' ' + manRes[i].last_name);
-    };
-  });
-
-  inquirer.prompt([
-    {
-      type: 'list',
-      name: 'employeeName',
-      message: 'Which Employee would you like to UPDATE?',
-      choices: employeeNames
-    },
-    {
-      type: 'list',
-      name: 'managerName',
-      message: 'Who would like to be their new manager?',
-      choices: managerNames
     }
-  ])
-  .then(({employeeName}) => {
-    let managerName = NULL;
-    let manager_id = NULL;
-    let id = NULL;
-
-    for (let i = 0; i < managerNames.length; i++) {
-      if (managerNames[i] === managerName) {
-        managers[i].id = manager_id;
-        managers[i] = managerName;
+  })
+  .then(() => {
+    inquirer.prompt([
+      {
+        type: 'list',
+        name: 'employeeName',
+        message: 'Which Employee would you like to UPDATE?',
+        choices: employeeNames
+      },
+      {
+        type: 'list',
+        name: 'managerName',
+        message: 'Who would like to be their new manager?',
+        choices: managerNames
       }
-      
-    }
-    for (let i = 0; i < employeeNames.length; i++) {
-      if (employeeNames[i] === employeeName) {
-        employees[i].id = id;
-        employee.updateManager(manager_id, id, employeeName, managerName);
+    ])
+    .then(({employeeName, managerName}) => {
+      let manager_name;
+      let manager_id;
+      let id;
+  
+      for (let i = 0; i < managerNames.length; i++) {
+        if (managerNames[i] === managerName) {
+          manager_id = managers[i].id;
+          manager_name = managerNames[i];
+        }
+      }
+      for (let i = 0; i < employeeNames.length; i++) {
+        if (employeeNames[i] === employeeName) {
+          id = employees[i].id;
+          employee.updateManager(manager_id, id, employeeName, manager_name);
+        };
       };
       mainMenu();
-    };
-  });
+    });
+  })
 }
 
 mainMenu();
