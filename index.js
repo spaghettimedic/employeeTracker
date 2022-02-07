@@ -20,7 +20,7 @@ const mainMenu = () => {
   - You will need to CREATE Managers before you can assign a Manager to an Employee.
   `);
 
-  return inquirer.prompt(
+  inquirer.prompt(
     {
       type: 'list',
       name: 'menuChoice',
@@ -90,7 +90,6 @@ const mainMenu = () => {
   });
 };
 
-// works but makes duplicates
 const newEmployee = () => {
   let roles = [];
   let managers = [];
@@ -98,10 +97,11 @@ const newEmployee = () => {
   let managerNames = [];
 
   // get all available roles
-  const role_sql = `SELECT * FROM roles`;
-  db.query(role_sql, (err, roleRes) => {
-    if (err) {
-      console.log(err);
+  db.promise().query(`SELECT * FROM roles`)
+  .then(([roleRes]) => {
+    if (!roleRes) {
+      console.log('There are no roles yet! Please add roles before adding an employee.');
+      mainMenu();
     };
     for (let i = 0; i < roleRes.length; i++) {
       roles.push(roleRes[i]);
@@ -110,10 +110,10 @@ const newEmployee = () => {
   });
 
   // get all available managers
-  const manager_sql = `SELECT * FROM employees WHERE role_id = 1`;
-  db.query(manager_sql, (err, manRes) => {
-    if (err) {
-      console.log(err);
+  db.promise().query(`SELECT * FROM employees WHERE role_id = 1`)
+  .then(([manRes]) => {
+    if (!manRes) {
+      console.log(`There are no managers yet! If you want to assign a manager to this employee, you'll have to create some managers first, then update this employee's manager.`);
     };
     for (let i = 0; i < manRes.length; i++) {
       if (manRes[i].first_name) {
@@ -121,136 +121,141 @@ const newEmployee = () => {
         managerNames.push(manRes[i].first_name + ' ' + manRes[i].last_name);
       };
     };
-  });
-
-  return inquirer.prompt([
-    {
-      type: 'input',
-      name: 'firstName',
-      message: `What is this Employee's first name?`,
-      validate: firstNameInput => {
-        if (firstNameInput) {
-          return true;
-        } else {
-          console.log(`First name is required!`);
-          return false;
+  })
+  .then(() => {
+    console.log(roleTitles, managerNames);
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'firstName',
+        message: `What is this Employee's first name?`,
+        validate: firstNameInput => {
+          if (firstNameInput) {
+            return true;
+          } else {
+            console.log(`First name is required!`);
+            return false;
+          }
         }
-      }
-    },
-    {
-      type: 'input',
-      name: 'lastName',
-      message: `What is this Employee's last name?`,
-      validate: last_nameInput => {
-        if (last_nameInput) {
-          return true;
-        } else {
-          console.log(`Last name is required!`);
-          return false;
+      },
+      {
+        type: 'input',
+        name: 'lastName',
+        message: `What is this Employee's last name?`,
+        validate: last_nameInput => {
+          if (last_nameInput) {
+            return true;
+          } else {
+            console.log(`Last name is required!`);
+            return false;
+          }
         }
+      },
+      {
+        type: 'list',
+        name: 'employeeRole',
+        message: `What is this Employee's role?`,
+        choices: roleTitles
+      },
+      {
+        type: 'list',
+        name: 'employeeManager',
+        message: "Who is this Employee's manager?",
+        choices: managerNames
       }
-    },
-    {
-      type: 'list',
-      name: 'employeeRole',
-      message: `What is this Employee's role?`,
-      choices: roleTitles
-    },
-    {
-      type: 'list',
-      name: 'employeeManager',
-      message: "Who is this Employee's manager?",
-      choices: managerNames
-    }
-  ])
-  .then(({firstName, lastName, employeeRole, employeeManager}) => {
-    // set user answer to database id value for role and manager with these loops
-    let role_id = null;
-    for (let i = 0; i < roles.length; i++) {
-      if (roles[i].title === employeeRole) {
-        role_id = roles[i].id;
+    ])
+    .then(({firstName, lastName, employeeRole, employeeManager}) => {
+      // set user answer to database id value for role and manager with these loops
+      let role_id = null;
+      for (let i = 0; i < roles.length; i++) {
+        if (roles[i].title === employeeRole) {
+          role_id = roles[i].id;
+        };
       };
-    };
-    let manager_id = null;
-    for (let i = 0; i < managers.length; i++) {
-      if (managers[i].first_name + ' ' + managers[i].last_name === employeeManager) {
-        manager_id = managers[i].id;
+      let manager_id = null;
+      for (let i = 0; i < managers.length; i++) {
+        if (managers[i].first_name + ' ' + managers[i].last_name === employeeManager) {
+          manager_id = managers[i].id;
+        };
       };
-    };
-
-    employee.createEmployee(firstName, lastName, role_id, manager_id);
-    mainMenu();
+  
+      employee.createEmployee(firstName, lastName, role_id, manager_id);
+      mainMenu();
+    });
   });
 };
 
-// works but is not recognizing dept selection
 const newRole = () => {
   let departments = [];
   let departmentNames = [];
 
   // get all available roles
-  const dept_sql = `SELECT * FROM departments`;
-  db.query(dept_sql, (err, deptRes) => {
-    if (err) {
-      console.log(err);
+  db.promise().query(`SELECT * FROM departments`)
+  .then(([deptRes]) => {
+    if (!deptRes) {
+      console.log(`There are no departments in the database yet!`);
+      return;
     }
     for (let i = 0; i < deptRes.length; i++) {
       departments.push(deptRes[i]);
       departmentNames.push(deptRes[i].name);
     };
-  });
-
-  return inquirer.prompt([
-    {
-      type: 'input',
-      name: 'title',
-      message: `What is this Role's title?`,
-      validate: titleInput => {
-        if (titleInput) {
-          return true;
-        } else {
-          console.log(`The Role's title is required!`);
-          return false;
+    console.log(departments, departmentNames);
+  })
+  .then(() => {
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'title',
+        message: `What is this Role's title?`,
+        validate: titleInput => {
+          if (titleInput) {
+            return true;
+          } else {
+            console.log(`The Role's title is required!`);
+            return false;
+          }
+        }
+      },
+      {
+        type: 'list',
+        name: 'roleDept',
+        message: `What department is this Role in?`,
+        choices: departmentNames
+      },
+      {
+        type: 'number',
+        name: 'salary',
+        message: 'What is the annual salary for this Role?',
+        validate: salaryInput => {
+          if (salaryInput) {
+            return true;
+          } else {
+            console.log('You must give every role a salary and commas are not accepted');
+            return false;
+          }
         }
       }
-    },
-    {
-      type: 'list',
-      name: 'roleDept',
-      message: `What department is this Role in?`,
-      choices: departmentNames
-    },
-    {
-      type: 'number',
-      name: 'salary',
-      message: 'What is the annual salary for this Role?',
-      validate: salaryInput => {
-        if (salaryInput) {
-          return true;
-        } else {
-          console.log('You must give every role a salary and commas are not accepted');
-          return false;
-        }
-      }
-    }
-  ])
-  .then(({title, roleDept, salary}) => {
-    // set user answer to database id value for department with this loop
-    let department_id = null;
-    for (let i = 0; i < departments.length; i++) {
-      if (departments[i] === roleDept) {
-        department_id = departments[i].id;
+    ])
+    .then(({title, roleDept, salary}) => {
+      // set user answer to database id value for department with this loop
+      let department_id;
+      for (let i = 0; i < departments.length; i++) {
+        if (departments[i] === roleDept) {
+          department_id = departments[i].id;
+          console.log(department_id);
+        };
       };
-    };
-    role.createRole(title, salary, department_id);
-    mainMenu();
+      role.createRole(title, salary, department_id);
+      mainMenu();
+    });
   });
 };
 
 // works but creates duplicates
 const newDept = () => {
 
-  return inquirer.prompt({
+  inquirer.prompt({
     type: 'input',
     name: 'deptName',
     message: 'What is the name of this Department?',
@@ -286,7 +291,7 @@ const viewEmpByMan = () => {
     return manRes;
   });
 
-  return inquirer.prompt({
+  inquirer.prompt({
     type: 'list',
     name: 'employeeManager',
     message: 'Which manager would you like to see the employees for?',
@@ -322,7 +327,7 @@ const viewEmpByDept = () => {
     return deptRes;
   });
 
-  return inquirer.prompt({
+  inquirer.prompt({
     type: 'list',
     name: 'department',
     message: 'Which department would you like to see the employees for?',
@@ -347,17 +352,20 @@ const removeEmployee = () => {
   let employeeNames = [];
 
   // gets list of current employees
-  const emp_sql = 'SELECT * FROM employees';
-  db.query(emp_sql, (err, rows) => {
-    if (err) {
-      console.log(err);
+  db.promise().query('SELECT * FROM employees')
+  .then(([rows]) => {
+    if (!rows) {
+      console.log(`There are no employees in the database yet!`);
+      mainMenu();
     }
     for (let i = 0; i < rows.length; i++) {
       employees.push(rows[i]);
       employeeNames.push(rows[i].first_name + ' ' + rows[i].last_name);
     }
-
-    return inquirer.prompt([
+    console.log(employees, employeeNames);
+  })
+  .then(() => {
+    inquirer.prompt([
       {
         type: 'list',
         name: 'employeeName',
@@ -368,11 +376,11 @@ const removeEmployee = () => {
     .then(({employeeName}) => {
       for (let i = 0; i < employees.length; i++) {
         if (employeeNames[i] === employeeName) {
-          employee.setProperties(employees[i]);
           employee.deleteEmployee(employeeName, employees[i].id);
+          console.log(employeeName, employees[i].id);
         };
-        mainMenu();
       };
+      mainMenu();
     });
   });
 };
@@ -383,17 +391,20 @@ const removeRole = () => {
   let roleTitles = [];
 
   // gets list of current roles
-  const role_sql = 'SELECT * FROM roles';
-  db.query(role_sql, (err, rows) => {
-    if (err) {
-      console.log(err);
+  db.promise().query(`SELECT * FROM roles`)
+  .then(([rows]) => {
+    if (!rows) {
+      console.log(`There are no roles in the database!`);
+      return mainMenu();
     };
     for (let i = 0; i < rows.length; i++) {
       roles.push(rows[i]);
       roleTitles.push(rows[i].title);
     };
-
-    return inquirer.prompt([
+    console.log(roles, roleTitles);
+  })
+  .then(() => {
+    inquirer.prompt([
       {
         type: 'list',
         name: 'roleTitle',
@@ -403,14 +414,15 @@ const removeRole = () => {
     ])
     .then(({roleTitle}) => {
       for (let i = 0; i < roles.length; i++) {
-        if (roles[i].name === roleTitle) {
-          role.setProperties(roles[i]);
-          role.deleteRole(roleTitle, roles[i].id);
+        if (roles[i].title === roleTitle) {
+          let role_id;
+          role_id = roles[i].id;
+          role.deleteRole(roleTitle, role_id);
         };
-        mainMenu();
       };
+      mainMenu();
     });
-  });
+  })
 };
 
 // works but duplicates everything shown in the terminal
@@ -429,7 +441,7 @@ const removeDept = () => {
       }
     }
 
-    return inquirer.prompt([
+    inquirer.prompt([
       {
         type: 'list',
         name: 'deptName',
@@ -479,7 +491,7 @@ const updEmpMan = () => {
     };
   });
 
-  return inquirer.prompt([
+  inquirer.prompt([
     {
       type: 'list',
       name: 'employeeName',
@@ -515,11 +527,4 @@ const updEmpMan = () => {
   });
 }
 
-mainMenu()
-.then(mainMenu);
-
-// .then(companyDataArr => {
-//   return generatePage(companyDataArr)
-// .catch(err => {
-//   console.log(err);
-// });
+mainMenu();

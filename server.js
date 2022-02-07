@@ -21,12 +21,11 @@ app.use((req, res) => {
   res.status(404).end();
 });
 
-// Start server after DB connection
+// Start server after DB connection and call index.js to prompt user
 db.connect(err => {
   if (err) throw err;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    index();
   });
-});
-
-index();
+})
